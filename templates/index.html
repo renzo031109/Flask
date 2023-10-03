@@ -1,18 +1,26 @@
-<h1>Hello  WOrld!!!</h1>
-<h2> The best</h2>
-<h3>My name is {{ first_name }}</h3>
-<p>{{ stuff | safe }}</p>
-<h2>Family Rivera </h2>
 
-{% for f in family %}
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+    <h1>Hello  WOrld!!!</h1>
+    <h2> The best</h2>
+    <h3>My name is {{ first_name }}</h3>
+    <p>{{ stuff | safe }}</p>
+    <h2>Family Rivera </h2>
+
+    {% for f in family %}
     {% if f == 50 %}
         {{ f + 100 }} </br>
     {% else %}
         {{ f }} </br>
     {% endif %}
-{% endfor %}
+    {% endfor %}
 
-</br> </br>
+    </br> </br>
 
 
-{{ family.0 }}
+    {{ family.0 }}
+
+{% endblock %}
