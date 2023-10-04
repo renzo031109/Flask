@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, flash
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
@@ -19,6 +19,7 @@ def index():
     #return "<h1> Hello Renan </h1>"
     first_name = "Renan"
     stuff = "<strong> Hello Guyss!!! </strong>"
+    flash("Welcome to the jungle")
 
     family = ["Renan", "Uriel", "Renan", "Rain",50]
 
@@ -49,6 +50,8 @@ def name():
     if form.validate_on_submit():
         name = form.name.data
         form.name.data = ''
+        flash("Form Submitted Successfully")
+        
     return render_template("name.html",
                            name = name,
                            form = form)
