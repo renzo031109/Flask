@@ -2,11 +2,25 @@ from flask import Flask, render_template, flash
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
 #Create a Flask Instance
 app = Flask(__name__)
+#Add Database
+app.config['SQALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+#Secret Key
 app.config['SECRET_KEY'] = "This is my secret key"
+#Initialize the DB
+db = SQLAlchemy(app)
 
+#Create Model
+class Users(db.Model):
+    id = db.Column(db.integer, primary_key=True)
+    name = db.Column(db.string(200), nullable=False)
+    email = db.Column(db.string(200), nullable=False)
+    date_added = db.Column()
+ 
 #Create a Form Class
 class NamerForm(FlaskForm):
     name = StringField("What's Your Name", validators=[DataRequired()])
