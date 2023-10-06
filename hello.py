@@ -7,25 +7,62 @@ from datetime import datetime
 
 #Create a Flask Instance
 app = Flask(__name__)
+
 #Add Database
-app.config['SQALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 #Secret Key
 app.config['SECRET_KEY'] = "This is my secret key"
 #Initialize the DB
 db = SQLAlchemy(app)
 
+
 #Create Model
 class Users(db.Model):
-    id = db.Column(db.integer, primary_key=True)
-    name = db.Column(db.string(200), nullable=False)
-    email = db.Column(db.string(200), nullable=False)
-    date_added = db.Column()
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    email = db.Column(db.String(200), nullable=False, unique=True)
+    date_added = db.Column(db.DateTime, default=datetime.utcnow)
+
+    with app.app_context():
+        db.create_all()
+
+    #Create A String
+    def __repr__(self):
+        return '<Name %r>' % self.name
  
+#Create a form class
+class UserForm(FlaskForm):
+    name = StringField("Name", validators=[DataRequired()])
+    email = StringField("Email", validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
 #Create a Form Class
 class NamerForm(FlaskForm):
     name = StringField("What's Your Name", validators=[DataRequired()])
     submit = SubmitField("Submit")
 
+
+
+
+@app.route('/user/add', methods=['GET','POST'])
+def add_user():
+    name = None
+    form = UserForm()
+    if form.validate_on_submit():
+        user = Users.query.filter_by(email=form.email.data).first()
+        if user is None:
+            user = Users(name=form.name.data, email=form.email.data)
+            db.session.add(user)
+            db.session.commit()
+        name = form.name.data
+        form.name.data = ''
+        form.email.data = ''
+        flash("user added successfully!")
+    our_users = Users.query.order_by(Users.date_added)
+    return render_template("add_user.html",
+                           form=form,
+                           name=name,
+                           our_users=our_users)
 
 #Create a route decorator
 @app.route('/')
