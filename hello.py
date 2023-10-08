@@ -1,4 +1,4 @@
-from flask import Flask, render_template, flash
+from flask import Flask, render_template, flash, request
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
@@ -9,18 +9,53 @@ from datetime import datetime
 app = Flask(__name__)
 
 #Add Database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+#Old database sqlite
+# app.config['SQALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+#new database sqlite
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Test1234@localhost/our_users'
 #Secret Key
 app.config['SECRET_KEY'] = "This is my secret key"
 #Initialize the DB
 db = SQLAlchemy(app)
 
+#Update Database Record
+@app.route('/update/<int:id>', methods=['POST','GET'])
+def update(id):
+    form = UserForm()
+    name_to_update = Users.query.get_or_404(id)
+    if request.method == "POST":
+        name_to_update.name = request.form['name']
+        name_to_update.email = request.form['email']
+        name_to_update.favorite_color = request.form['favorite_color']
+        try:
+            db.session.commit()
+            flash("User updated successfully")
+            return render_template('update.html',
+                                   form=form,
+                                   name_to_update=name_to_update)
+        except:
+            flash("Error, Try again")
+            return render_template('update.html',
+                                   form=form,
+                                   name_to_update=name_to_update)
+    else:
+        return render_template('update.html',
+                                   form=form,
+                                   name_to_update=name_to_update)
+
+#on terminal type the following: incase of Application Context error
+# >>>from app import db, app
+# >>>from hello import db
+# >>> with app.app_context():
+# ... db.create_all() (this first press space button, next db.create_all())
+# ... (this just press enter button)
 
 #Create Model
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     email = db.Column(db.String(200), nullable=False, unique=True)
+    favorite_color = db.Column(db.String(120))
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
 
     with app.app_context():
@@ -34,6 +69,7 @@ class Users(db.Model):
 class UserForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired()])
+    favorite_color = StringField("Favorite Color")
     submit = SubmitField("Submit")
 
 #Create a Form Class
@@ -51,12 +87,13 @@ def add_user():
     if form.validate_on_submit():
         user = Users.query.filter_by(email=form.email.data).first()
         if user is None:
-            user = Users(name=form.name.data, email=form.email.data)
+            user = Users(name=form.name.data, email=form.email.data, favorite_color=form.favorite_color.data)
             db.session.add(user)
             db.session.commit()
         name = form.name.data
         form.name.data = ''
         form.email.data = ''
+        form.favorite_color.data =''
         flash("user added successfully!")
     our_users = Users.query.order_by(Users.date_added)
     return render_template("add_user.html",
