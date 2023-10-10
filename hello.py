@@ -119,6 +119,12 @@ class UserForm(FlaskForm):
     password_hash2 = PasswordField('Confirm Password', validators=[DataRequired()])
     submit = SubmitField("Submit")
 
+#Create a Pasword Class
+class PasswordForm(FlaskForm):
+    email = StringField("What's Your Name", validators=[DataRequired()])
+    password_hash = PasswordField("What's Your Password", validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
 #Create a Form Class
 class NamerForm(FlaskForm):
     name = StringField("What's Your Name", validators=[DataRequired()])
@@ -179,6 +185,28 @@ def page_not_found(e):
 @app.errorhandler(500)
 def page_not_found(e):
     return render_template("500.html"),500 
+
+#Create Password test page
+@app.route('/test_pw',methods=['GET','POST'])
+def test_pw():
+    email = None
+    password = None
+    pw_to_check = None
+    passed = None
+
+    form = PasswordForm()
+    # Validate Form
+    if form.validate_on_submit():
+        email = form.email.data
+        password = form.password_hash.data   
+        #Clear the form
+        form.email.data = ''
+        form.password_hash.data = ''    
+        
+    return render_template("test_pw.html",
+                           email = email,
+                           password=password,
+                           form = form)
 
 #Create Name Page
 @app.route('/name',methods=['GET','POST'])
