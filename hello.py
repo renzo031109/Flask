@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import date
 
 #Create a Flask Instance
 app = Flask(__name__)
@@ -21,6 +22,17 @@ app.config['SECRET_KEY'] = "This is my secret key"
 db = SQLAlchemy(app)
 #Migration of Database
 migrate = Migrate(app,db)
+
+#Jason
+@app.route('/date')
+def get_current_date():
+    favorite_pizza = {
+        "John": "Hawaiaan",
+        "Renan": "Pepperoni",
+        "Analyn": "Cheeze"
+    }
+    return favorite_pizza
+    #return {"Date": date.today()}
 
 #Update Database Record
 @app.route('/update/<int:id>', methods=['POST','GET'])
