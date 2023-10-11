@@ -15,7 +15,12 @@
     <h1>Email: {{ email }} !! </h1>
     <h1>Password: {{ password }}</h1>
     <br/>
-   
+    <h2>I found this info: </h2>
+    Name: {{ pw_to_check.name }} <br/>
+    Email:  {{ pw_to_check.email }} <br/>
+    PW:  {{ pw_to_check.password_hash }} <br/>
+    <br/>
+    Passed : {{ passed }}
 {% else %}
     <h1>Whats your Email and password</h1>
     <br/>
@@ -24,7 +29,7 @@
         {{ form.email.label(class="form-label") }}
         {{ form.email(class="form-control") }}
         {{ form.password_hash.label(class="form-label") }}
-        {{ form.password_hash.label(class="form-label") }}
+        {{ form.password_hash(class="form-control") }}
         <br/>
         {{ form.submit(class="btn btn-warning") }}
     </form>

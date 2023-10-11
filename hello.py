@@ -121,7 +121,7 @@ class UserForm(FlaskForm):
 
 #Create a Pasword Class
 class PasswordForm(FlaskForm):
-    email = StringField("What's Your Name", validators=[DataRequired()])
+    email = StringField("What's Your Email", validators=[DataRequired()])
     password_hash = PasswordField("What's Your Password", validators=[DataRequired()])
     submit = SubmitField("Submit")
 
@@ -192,20 +192,26 @@ def test_pw():
     email = None
     password = None
     pw_to_check = None
-    passed = None
-
+    passed = None 
     form = PasswordForm()
+
     # Validate Form
     if form.validate_on_submit():
         email = form.email.data
         password = form.password_hash.data   
         #Clear the form
         form.email.data = ''
-        form.password_hash.data = ''    
+        form.password_hash.data = ''  
+        pw_to_check = Users.query.filter_by(email=email).first()  
+
+        #Check hashed password
+        passed = check_password_hash(pw_to_check.password_hash, password)
         
     return render_template("test_pw.html",
                            email = email,
-                           password=password,
+                           password = password,
+                           pw_to_check = pw_to_check,
+                           passed = passed,
                            form = form)
 
 #Create Name Page
