@@ -1,4 +1,4 @@
-from flask import Flask, render_template, flash, request
+from flask import Flask, render_template, flash, request, redirect, url_for
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField, BooleanField, ValidationError
 from wtforms.validators import DataRequired, EqualTo, Length
@@ -32,6 +32,12 @@ class Posts(db.Model):
     author = db.Column(db.String(255))
     date_posted = db.Column(db.DateTime, default=datetime.utcnow)
     slug = db.Column(db.String(255))
+
+@app.route('/posts')
+def posts():
+    #Grab all the post from the database
+    posts = Posts.query.order_by(Posts.date_posted)
+    return render_template("posts.html",posts=posts)
     
 #Create a Posts Form
 class PostForm(FlaskForm):
@@ -40,6 +46,55 @@ class PostForm(FlaskForm):
     author = StringField("Author", validators=[DataRequired()])
     slug = StringField("Slugfield", validators=[DataRequired()])
     submit = SubmitField("Submit")
+
+#Create Delete route
+@app.route('/posts/delete/<int:id>')
+def delete_post(id):
+    post_to_delete = Posts.query.get_or_404(id)
+
+    try:
+        db.session.delete(post_to_delete)
+        db.session.commit()
+        #return a message
+        flash("Blog post was deleted")
+
+        #Grab all the post from the database
+        posts = Posts.query.order_by(Posts.date_posted)
+        return render_template("posts.html",posts=posts)
+    except:
+        flash("There was a problem deleting post")
+        #Grab all the post from the database
+        posts = Posts.query.order_by(Posts.date_posted)
+        return render_template("posts.html",posts=posts)
+
+#View post individually
+@app.route('/posts/<int:id>')
+def post(id):
+    post = Posts.query.get_or_404(id)
+    return render_template('post.html',post=post)
+    
+#Edit Post    
+@app.route('/posts/edit/<int:id>', methods=['GET','POST'])
+def edit_post(id):
+    post = Posts.query.get_or_404(id)
+    form = PostForm()
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.author = form.author.data
+        post.slug = form.slug.data
+        post.content = form.content.data
+        # Update Database
+        db.session.add(post)
+        db.session.commit()
+        flash("Post has been updated")
+        return redirect(url_for('post',id=post.id))
+    
+    #filled with existing data
+    form.title.data = post.title
+    form.author.data = post.author
+    form.slug.data = post.slug
+    form.content.data = post.content
+    return render_template('edit_post.html',form=form)
 
 #Add Post Page
 @app.route('/add_post', methods=['GET','POST'])
