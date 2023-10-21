@@ -10,6 +10,7 @@
     
 {% endfor %}
 
+<!--
 {% if name %}
     <h1>Update User</h1>
     <br/><br/><br/>
@@ -24,8 +25,33 @@
 
 
 {% else %}
+-->
+
+
+{% if id != current_user.id %}
+
     <h1>Update User</h1>
-    <br/>
+    <br/><br/>
+    ID to Update: {{ id }} <br/>
+    Current ID : {{ current_user.id }}
+
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Unable to edit this user</strong> 
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <h2>Denied Access</h2>
+
+
+{% else %}
+
+    <h1>Update User</h1>
+    <br/><br/>
+    ID to Update: {{ id }} <br/>
+    Current ID : {{ current_user.id }}
+
+
+    <br/><br/>
     <div class="shadow p-3 mb-5 bg-body-tertiary rounded">
         <form action="/update/{{ name_to_update.id }}" method='POST'>
             {{ form.hidden_tag() }}
@@ -47,6 +73,8 @@
     </div>
 <br/><br/><br/>
 
+{% endif %}
 
-        {% endif %}     
-        {% endblock %} </td>
+
+      <!--  {% endif %}     -->
+{% endblock %} </td>

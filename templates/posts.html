@@ -16,7 +16,7 @@
 <div class="shadow p-3 mb-5 bg-body-tertiary rounded">
     <h2><a href="{{ url_for('post',id=post.id) }}" >{{ post.title }}</a></h2> <br>
     <small> 
-    {{ post.author }} <br>
+    By: {{ post.poster.name }} <br>
     {{ post.slug }} <br>
     {{ post.date_posted }}
     {{ post.title }} <br>

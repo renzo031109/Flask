@@ -29,7 +29,37 @@
 
           <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
           <a href=" {{ url_for('logout')  }}" class="btn btn-secondary bt-sm">Logout</a>
+          <a href=" {{ url_for('update', id=current_user.id)  }}" class="btn btn-success bt-sm">Update</a>
+          <a href="{{ url_for('delete',id=current_user.id) }}" class="btn btn-danger">Delete</a>
+
         </div>
-      </div>
+    </div>
+
+      <br/>
+
+    <div class="card">
+        <div class="card-header">
+            Update Profile
+        </div>
+        <div class="card-body">
+            <form action="/dashboard" method='POST'>
+                {{ form.hidden_tag() }}
+                {{ form.name.label(class="form-label") }}
+                {{ form.name(class="form-control", value=name_to_update.name) }}
+                {{ form.username.label(class="form-label") }}
+                {{ form.username(class="form-control", value=name_to_update.username) }}
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(class="form-control",value=name_to_update.email) }}
+                <br/>
+                {{ form.favorite_color.label(class="form-label") }}
+                {{ form.favorite_color(class="form-control", value=name_to_update.favorite_color) }}
+                <br/>
+                {{ form.submit(class="btn btn-warning") }}
+    
+                <a href="{{ url_for('delete',id=current_user.id) }}" class="btn btn-danger">Delete</a>
+    
+            </form>
+        </div>
+    </div>
     
 {% endblock %}

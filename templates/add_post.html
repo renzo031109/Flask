@@ -10,6 +10,9 @@
     
 {% endfor %}
 
+<!-- this comment below is another option of login validation -->
+<!-- {% if current_user.is_authenticated %} -->
+
 <h1>Add Blog Post... </h1>
     <br/>
     <div class="shadow p-3 mb-5 bg-body-tertiary rounded">
@@ -17,8 +20,8 @@
             {{ form.hidden_tag() }}
             {{ form.title.label(class="form-label") }}
             {{ form.title(class="form-control") }}
-            {{ form.author.label(class="form-label") }}
-            {{ form.author(class="form-control") }}
+            <!-- {{ form.author.label(class="form-label") }}
+            {{ form.author(class="form-control") }} -->
             {{ form.slug.label(class="form-label") }}
             {{ form.slug(class="form-control") }}
             <br/>
@@ -28,5 +31,14 @@
             {{ form.submit(class="btn btn-warning") }}
         </form>
     </div>
+
+<!-- this comment below is another option of login validation -->
+<!--
+{% else %}
+
+<a href="{{ url_for('login') }}">Login</a>
+
+{% endif %}
+ -->
 
 {% endblock %}
