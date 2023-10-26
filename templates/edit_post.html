@@ -28,6 +28,12 @@
         <br/>
         {{ form.submit(class="btn btn-warning") }}
     </form>
+    
+        <!-- load ckeditor -->
+        {{ ckeditor.load() }}
+        {{ ckeditor.config(name='body') }}
+
+
 </div>
 <br>
 

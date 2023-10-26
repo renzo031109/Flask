@@ -1,0 +1,22 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+    <br/>
+<h4>Your searched for : <em> {{ searched }} </em></h4>
+
+
+<br/>
+
+{% if posts  %}
+    {% for post in posts  %}
+    <div class="shadow p-2 mb-2 bg-body-tertiary rounded">
+    <a href="{{ url_for('post',id=post.id) }}"> 
+        {{ post.title }} </a><br/>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>Sorry your search term: <strong>{{ searched }}</strong> is not found on the list</p>
+
+{% endif %}
+{% endblock %}

@@ -4,13 +4,15 @@ from flask_migrate import Migrate
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import date
-from webforms import LoginForm, UserForm, PasswordForm, NamerForm, PostForm
+from webforms import LoginForm, UserForm, PasswordForm, NamerForm, PostForm, SearchForm
+from flask_ckeditor import CKEditor
 
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 
 #Create a Flask Instance
 app = Flask(__name__)
-
+#add CKEditor
+ckeditor = CKEditor(app)
 #Add Database
 #Old database sqlite
 # app.config['SQALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
@@ -32,6 +34,16 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return Users.query.get(int(user_id))
 
+#Create Admin Page
+@app.route('/admin')
+@login_required
+def admin():
+    id = current_user.id
+    if id == 3:
+        return render_template("admin.html")
+    else:
+        flash("Sorry this page is for admin only!")
+        return redirect(url_for('dashboard'))
 
 #Add Post Page
 @app.route('/add_post', methods=['GET','POST'])
@@ -103,6 +115,7 @@ def dashboard():
         name_to_update.username = request.form['username']
         name_to_update.email = request.form['email']
         name_to_update.favorite_color = request.form['favorite_color']
+        name_to_update.about_author = request.form['about_author']
         try:
             db.session.commit()
             flash("User updated successfully")
@@ -123,20 +136,28 @@ def dashboard():
 
 #Create Delete route
 @app.route('/posts/delete/<int:id>')
+@login_required
 def delete_post(id):
     post_to_delete = Posts.query.get_or_404(id)
+    id = current_user.id    
+    if id == post_to_delete.poster.id:
+        try:
+            db.session.delete(post_to_delete)
+            db.session.commit()
+            #return a message
+            flash("Blog post was deleted")
 
-    try:
-        db.session.delete(post_to_delete)
-        db.session.commit()
-        #return a message
-        flash("Blog post was deleted")
+            #Grab all the post from the database
+            posts = Posts.query.order_by(Posts.date_posted)
+            return render_template("posts.html",posts=posts)
+        except:
+            flash("There was a problem deleting post")
+            #Grab all the post from the database
+            posts = Posts.query.order_by(Posts.date_posted)
+            return render_template("posts.html",posts=posts)
 
-        #Grab all the post from the database
-        posts = Posts.query.order_by(Posts.date_posted)
-        return render_template("posts.html",posts=posts)
-    except:
-        flash("There was a problem deleting post")
+    else:
+        flash("You are not authorized to delete this post")
         #Grab all the post from the database
         posts = Posts.query.order_by(Posts.date_posted)
         return render_template("posts.html",posts=posts)
@@ -187,13 +208,17 @@ def edit_post(id):
         flash("Post has been updated")
         return redirect(url_for('post',id=post.id))
     
-    #filled with existing data
-    form.title.data = post.title
-  #  form.author.data = post.author
-    form.slug.data = post.slug
-    form.content.data = post.content
-    return render_template('edit_post.html',form=form)
-
+    if current_user.id == post.poster_id:
+        #filled with existing data
+        form.title.data = post.title
+        # form.author.data = post.author
+        form.slug.data = post.slug
+        form.content.data = post.content
+        return render_template('edit_post.html',form=form)
+    else:
+        flash("You are not authorized to edit post") 
+        posts = Posts.query.order_by(Posts.date_posted)
+        return render_template("posts.html",posts=posts)
 
 #Jason
 @app.route('/date')
@@ -279,6 +304,30 @@ def post(id):
     post = Posts.query.get_or_404(id)
     return render_template('post.html',post=post)
     
+
+#Pass stuff to NavBar
+@app.context_processor
+def base():
+    form = SearchForm()
+    return dict(form=form)
+
+#Create Search Function 
+@app.route('/search', methods=["POST"])
+def search():
+    form = SearchForm()
+    posts = Posts.query
+    if form.validate_on_submit():
+        #Get data from submitted form
+        post.searched = form.searched.data
+        #query the database
+        posts = posts.filter(Posts.content.like('%' + post.searched + '%'))
+        posts = posts.order_by(Posts.title).all()
+
+        return render_template("search.html", 
+                               form=form,
+                               searched=post.searched,
+                               posts=posts)
+
 
 #Update Database User Record
 @app.route('/update/<int:id>', methods=['POST','GET'])
@@ -396,6 +445,7 @@ class Users(db.Model, UserMixin):
     name = db.Column(db.String(200), nullable=False)
     email = db.Column(db.String(200), nullable=False, unique=True)
     favorite_color = db.Column(db.String(120))
+    about_author = db.Column(db.Text(500), nullable=True)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     #Do some password stuff!
     password_hash = db.Column(db.String(128))
