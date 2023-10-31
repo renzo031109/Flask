@@ -21,7 +21,32 @@
     {{ post.date_posted }}
     {{ post.title }} <br>
     {{ post.content | safe }} <br><br>
-    {{ post.poster.about_author }}
+
+    <div class="card mb-3">
+        <div class="row no-gutters">
+            <div class="col-md-2">
+                {% if post.poster.profile_pic %}
+                    <img src="{{ url_for('static', filename='images/' + post.poster.profile_pic) }}" width="150" align="left">
+                {% else %}
+                    <img src="{{ url_for('static', filename='images/pict.jpg') }}" width="150" align="left">
+                {% endif %}
+            </div>
+            <div class="col-md-10">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        {{ post.poster.name }}
+                    </h5>
+                    <p class="card-text">
+                        {% if post.poster.about_author %}
+                        about: {{ post.poster.about_author }}
+                        {% else %}
+                       Author has no about profile
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
     </small> 
 </div>
 <br>

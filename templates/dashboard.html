@@ -32,6 +32,7 @@
           <strong>Favorite Color :</strong>{{ current_user.favorite_color }}<br/>
           <strong>About the Author:</strong>{{ current_user.about_author }}<br/>
           <strong>Date Joined :</strong>{{ current_user.date_added }}<br/>
+          <strong>Profile Pict :</strong>{{ current_user.profile_pic }}<br/>
 
           <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
           <a href=" {{ url_for('logout')  }}" class="btn btn-secondary bt-sm">Logout</a>
@@ -41,7 +42,13 @@
          
         </div>
         <div class="col-4">
-            <img src="{{ url_for('static', filename='images/pict.jpg') }}" width="200" align="right" > 
+            {% if current_user.profile_pic %}
+                <img src="{{ url_for('static', filename='images/' + current_user.profile_pic) }}" width="200" align="right" > 
+                
+            {% else %}
+                <img src="{{ url_for('static', filename='images/pict.jpg') }}" width="200" align="right" > 
+               
+            {% endif %}
         </div>
         </div>
         </div>
@@ -55,7 +62,7 @@
             Update Profile
         </div>
         <div class="card-body">
-            <form action="/dashboard" method='POST'>
+            <form action="/dashboard" method='POST' enctype="multipart/form-data">
                 {{ form.hidden_tag() }}
                 {{ form.name.label(class="form-label") }}
                 {{ form.name(class="form-control", value=name_to_update.name) }}
@@ -63,16 +70,19 @@
                 {{ form.username(class="form-control", value=name_to_update.username) }}
                 {{ form.email.label(class="form-label") }}
                 {{ form.email(class="form-control",value=name_to_update.email) }}
-                <br/>
+
                 {{ form.favorite_color.label(class="form-label") }}
                 {{ form.favorite_color(class="form-control", value=name_to_update.favorite_color) }}
-                
                 {{ form.about_author.label(class="form-label") }}
-                {{ form.about_author(class="form-control", value=name_to_update.about_author) }}
-                <br/>
-                {{ form.submit(class="btn btn-warning") }}
-    
+      
+                <textarea name="about_author" class="form-control">{{ name_to_update.about_author }}</textarea>
+                
+
+                {{ form.profile_pic.label(class="form-label") }}
+                {{ form.profile_pic(class="form-control", value=name_to_update.profile_pic) }}
+                <br/><br/>
                 <a href="{{ url_for('delete',id=current_user.id) }}" class="btn btn-danger">Delete</a>
+                {{ form.submit(class="btn btn-warning") }}
     
             </form>
         </div>

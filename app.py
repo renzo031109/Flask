@@ -6,6 +6,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import date
 from webforms import LoginForm, UserForm, PasswordForm, NamerForm, PostForm, SearchForm
 from flask_ckeditor import CKEditor
+from werkzeug.utils import secure_filename
+import uuid as uuid
+import os
 
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 
@@ -20,6 +23,10 @@ ckeditor = CKEditor(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Test1234@localhost/our_users'
 #Secret Key
 app.config['SECRET_KEY'] = "This is my secret key"
+
+UPLOAD_FOLDER = 'static/images/'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 #Initialize the DB
 db = SQLAlchemy(app)
 #Migration of Database
@@ -116,17 +123,41 @@ def dashboard():
         name_to_update.email = request.form['email']
         name_to_update.favorite_color = request.form['favorite_color']
         name_to_update.about_author = request.form['about_author']
-        try:
+        
+
+        #Check for profile pict
+        if request.files['profile_pic']:
+            name_to_update.profile_pic = request.files['profile_pic']
+
+            #Grab Image Name
+            pic_filename = secure_filename(name_to_update.profile_pic.filename)
+            #Set UUID
+            pic_name = str(uuid.uuid1()) + "_" + pic_filename
+            #Save that image
+            saver = request.files['profile_pic']
+        
+
+            #change it to a string to save to db
+            name_to_update.profile_pic = pic_name
+            try:
+                db.session.commit()
+                saver.save(os.path.join(app.config['UPLOAD_FOLDER'], pic_name))
+                flash("User updated successfully")
+                return render_template('dashboard.html',
+                                    form=form,
+                                    name_to_update=name_to_update)
+            except:
+                flash("Error, Try again")
+                return render_template('dashboard.html',
+                                    form=form,
+                                    name_to_update=name_to_update)
+        else:
             db.session.commit()
             flash("User updated successfully")
             return render_template('dashboard.html',
-                                   form=form,
-                                   name_to_update=name_to_update)
-        except:
-            flash("Error, Try again")
-            return render_template('dashboard.html',
-                                   form=form,
-                                   name_to_update=name_to_update)
+                                    form=form,
+                                    name_to_update=name_to_update)
+
     else:
         return render_template('dashboard.html',
                                    form=form,
@@ -168,28 +199,35 @@ def delete_post(id):
 #Delete Data    
 @app.route('/delete/<int:id>')
 def delete(id):
-    user_to_delete = Users.query.get_or_404(id)
-    name = None
-    form = UserForm()
 
-    try:
-        db.session.delete(user_to_delete)
-        db.session.commit()
-        flash('User Deleted Successfully')
+    if id == current_user.id:
 
-        our_users = Users.query.order_by(Users.date_added)
-        return render_template("add_user.html",
-                           form=form,
-                           name=name,
-                           our_users=our_users)
-    except:
-        flash("There was a problem deleting this record. Try again")
+        user_to_delete = Users.query.get_or_404(id)
+        name = None
+        form = UserForm()
 
-        return render_template("add_user.html",
-                           form=form,
-                           name=name,
-                           our_users=our_users)
- 
+        try:
+            db.session.delete(user_to_delete)
+            db.session.commit()
+            flash('User Deleted Successfully')
+
+            our_users = Users.query.order_by(Users.date_added)
+            return render_template("add_user.html",
+                            form=form,
+                            name=name,
+                            our_users=our_users)
+        except:
+            flash("There was a problem deleting this record. Try again")
+
+            return render_template("add_user.html",
+                            form=form,
+                            name=name,
+                            our_users=our_users)
+    
+    else:
+        flash("Sorry you cannot delete this user")
+        return redirect(url_for('dashboard'))
+
 
 #Edit Post    
 @app.route('/posts/edit/<int:id>', methods=['GET','POST'])
@@ -451,3 +489,4 @@ class Users(db.Model, UserMixin):
     password_hash = db.Column(db.String(128))
     #Users can have many posts
     posts = db.relationship('Posts', backref='poster')
+    profile_pic = db.Column(db.String(120), nullable=True)
